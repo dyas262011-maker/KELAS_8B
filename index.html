@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Kelas 8B • Bright Star ✨</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:'Poppins',sans-serif}
+:root{--bg:#020617;--card:rgba(255,255,255,.06);--text:#e5e7eb;--accent:#6366f1;}
+body.light{--bg:#eef2ff;--card:#fff;--text:#111827;}
+body{margin:0;background:var(--bg);color:var(--text);transition:.3s;overflow-x:hidden;}
+.header{display:flex;justify-content:space-between;align-items:center;padding:24px;background:linear-gradient(135deg,#6366f1,#22d3ee);border-radius:0 0 28px 28px;}
+.header-left h1{margin:0;font-size:26px;}
+.header-left p{margin:4px 0;opacity:.9;}
+#datetime{font-size:13px;opacity:.9;}
+#adminBadge{display:none;font-weight:700;margin-top:6px;}
+.logo{width:70px;cursor:pointer;transition:.3s;filter:drop-shadow(0 0 6px rgba(255,255,255,.4));}
+.logo.admin-on{filter:drop-shadow(0 0 18px #fff) drop-shadow(0 0 30px #22d3ee);transform:scale(1.08);}
+nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px;}
+nav button{padding:10px 14px;border:none;border-radius:14px;background:var(--card);color:var(--text);font-weight:600;}
+section{display:none;padding:20px;}
+section.active{display:block;}
+.card{background:var(--card);padding:20px;border-radius:22px;margin-bottom:18px;}
+h2{display:flex;align-items:center;gap:8px;}
+.editable{outline:none;}
+.hidden{display:none;}
+.action{margin-top:10px;width:100%;padding:12px;border:none;border-radius:14px;background:#22c55e;font-weight:700;}
+.danger{background:#ef4444;color:#fff;margin-top:6px;}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;}
+.gallery img,.gallery video{width:100%;border-radius:16px;}
+.caption{font-size:13px;margin-top:4px;}
+.like{cursor:pointer;margin-top:4px;}
+.star{position:fixed;width:2px;height:2px;background:white;top:0;animation:fall linear infinite;}
+@keyframes fall{to{transform:translateY(110vh);}}
+input,textarea{width:100%;margin-top:8px;padding:10px;border-radius:12px;border:none;}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <h1>✨ Kelas 8B – Bright Star ✨</h1>
+    <p>🌟 Bersinar, Kompak, Tidak Terlupakan 🌟</p>
+    <div id="datetime">⏰</div>
+    <div id="adminBadge">🛠️ ADMIN MODE</div>
+  </div>
+  <img src="logo.png" id="logoAdmin" class="logo">
+</header>
+
+<nav>
+  <button onclick="show('home')">🏠 Home</button>
+  <button onclick="show('prestasi')">🏆 Prestasi</button>
+  <button onclick="show('kenangan')">📸 Kenangan</button>
+  <button onclick="show('peringatan')">⚠️ Peringatan</button>
+  <button onclick="toggleTheme()">🌓 Mode</button>
+  <button id="starBtn" onclick="toggleStar()">⭐ Bintang</button>
+  <button id="waBtn" class="hidden">📤 Kirim WA</button>
+  <button id="logoutBtn" class="hidden">🔒 Logout</button>
+</nav>
+
+<section id="home" class="active">
+  <div class="card">
+    <h2>📚 Tentang Kelas</h2>
+    <div id="tentang" class="editable"></div>
+    <button class="action hidden" onclick="saveText('tentang')">💾 Simpan</button>
+  </div>
+  <div class="card">
+    <h2>👩‍🎓 Deskripsi Siswa</h2>
+    <div id="deskripsi" class="editable"></div>
+    <button class="action hidden" onclick="saveText('deskripsi')">💾 Simpan</button>
+  </div>
+</section>
+
+<section id="prestasi">
+  <div class="card">
+    <h2>🏆 Prestasi</h2>
+    <div id="prestasiText" class="editable"></div>
+    <button class="action hidden" onclick="saveText('prestasiText')">💾 Simpan</button>
+  </div>
+</section>
+
+<section id="kenangan">
+  <div class="card">
+    <h2>📸 Kenangan</h2>
+    <div id="kenanganAdmin" class="hidden">
+      <input type="file" id="fileKenangan" accept="image/*,video/*">
+      <textarea id="captionInput" placeholder="📝 Caption..."></textarea>
+      <button class="action" onclick="uploadKenangan()">➕ Tambah</button>
+    </div>
+    <div class="gallery" id="gallery"></div>
+  </div>
+</section>
+
+<section id="peringatan">
+  <div class="card">
+    <h2>⚠️ Peringatan</h2>
+    <div id="peringatanText" class="editable"></div>
+    <button class="action hidden" onclick="saveText('peringatanText')">💾 Simpan</button>
+  </div>
+  <div class="card">
+    <h2>💰 Sanksi / Denda</h2>
+    <div id="sanksiText" class="editable"></div>
+    <button class="action hidden" onclick="saveText('sanksiText')">💾 Simpan</button>
+  </div>
+</section>
+
+<footer>© 2026 • Kelas 8B ✨</footer>
+
+<script>
+/* NAV */
+function show(id){
+  document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if(isAdmin && id==="peringatan"){ waBtn.classList.remove("hidden"); }
+  else{ waBtn.classList.add("hidden"); }
+  applyAdmin();
+}
+
+/* TIME */
+function time(){
+  const d=new Date();
+  datetime.innerText="⏰ "+d.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" • "+d.toLocaleTimeString();
+}
+setInterval(time,1000);time();
+
+/* THEME */
+function toggleTheme(){document.body.classList.toggle("light");}
+
+/* ADMIN */
+let isAdmin=localStorage.getItem("admin")==="true";
+const PASS="8badmin";
+let tap=0,timer=null;
+logoAdmin.onclick=()=>{
+  tap++; clearTimeout(timer);
+  timer=setTimeout(()=>tap=0,1200);
+  if(tap===3){
+    const p=prompt("🔑 Password admin:");
+    if(p===PASS){isAdmin=true;localStorage.setItem("admin","true");applyAdmin();alert("Admin aktif ⭐");}
+    tap=0;
+  }
+};
+
+function applyAdmin(){
+  document.querySelectorAll(".editable").forEach(e=>e.contentEditable=isAdmin);
+  document.querySelectorAll(".action").forEach(b=>b.classList.toggle("hidden",!isAdmin));
+  waBtn.classList.toggle("hidden",!(isAdmin && document.getElementById('peringatan').classList.contains('active')));
+  logoutBtn.classList.toggle("hidden",!isAdmin);
+  kenanganAdmin.classList.toggle("hidden",!isAdmin);
+  adminBadge.style.display=isAdmin?"block":"none";
+  logoAdmin.classList.toggle("admin-on",isAdmin);
+}
+
+/* LOGOUT */
+logoutBtn.onclick=function(){isAdmin=false;localStorage.removeItem("admin");applyAdmin();}
+
+/* SAVE */
+function saveText(id){localStorage.setItem(id,document.getElementById(id).innerHTML);alert("💾 Disimpan");}
+["tentang","deskripsi","prestasiText","peringatanText","sanksiText"].forEach(id=>{
+  document.getElementById(id).innerHTML=localStorage.getItem(id)||"Klik logo 3x untuk edit...";
+});
+
+/* WA ADMIN */
+waBtn.onclick=function(){
+  const pText=peringatanText.innerText.trim()||"Kosong ⚠️";
+  const sText=sanksiText.innerText.trim()||"Tidak ada 💰";
+  window.open("https://wa.me/?text="+encodeURIComponent(`⚠️ PERINGATAN SISWA\n\n${pText}\n\n💰 SANKSI / DENDA\n${sText}`));
+};
+
+/* STAR */
+let starOn=false, stars=[];
+function toggleStar(){
+  starOn=!starOn;
+  if(!starOn){stars.forEach(s=>s.remove());stars=[];return;}
+  for(let i=0;i<25;i++){
+    const s=document.createElement("div");
+    s.className="star";
+    s.style.left=Math.random()*100+"vw";
+    s.style.animationDuration=2+Math.random()*3+"s";
+    document.body.appendChild(s);
+    stars.push(s);
+  }
+}
+
+/* KENANGAN */
+let kenangan=JSON.parse(localStorage.getItem("kenangan")||"[]");
+function uploadKenangan(){
+  const f=fileKenangan.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{kenangan.push({url:r.result,type:f.type,cap:captionInput.value,like:0});captionInput.value="";renderKenangan();};
+  r.readAsDataURL(f);
+}
+function renderKenangan(){
+  gallery.innerHTML="";
+  kenangan.forEach((k,i)=>{
+    const d=document.createElement("div");
+    d.innerHTML=`${k.type.startsWith("image")?`<img src="${k.url}">`:`<video src="${k.url}" controls></video>`}
+    <div class="caption">📝 ${k.cap}</div>
+    <div class="like" onclick="like(${i})">❤️ ${k.like}</div>`;
+    if(isAdmin){const del=document.createElement("button");del.className="danger";del.innerText="❌ Hapus";del.onclick=()=>{kenangan.splice(i,1);renderKenangan();};d.appendChild(del);}
+    gallery.appendChild(d);
+  });
+  localStorage.setItem("kenangan",JSON.stringify(kenangan));
+}
+function like(i){kenangan[i].like++;renderKenangan();}
+renderKenangan();
+applyAdmin();
+</script>
+
+</body>
+</html>
